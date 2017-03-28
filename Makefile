@@ -4,7 +4,7 @@ LIBS=/usr/lib/x86_64-linux-gnu/libopencv_calib3d.so /usr/lib/x86_64-linux-gnu/li
 
 CFLAGS=-I/usr/include/opencv
 
-all: main.cpp
+all: main.cpp common.hpp stats.h utils.h
 	$(CC) $(CFLAGS) main.cpp -o main $(LIBS)
 
 clean:
