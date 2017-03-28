@@ -8,6 +8,15 @@ using namespace cv;
 float ratioTest = 0.70f;
 int numKeyPoints = 1500;
 
+void showMatValue(Mat &img) {
+	for (int i = 0; i < img.rows; i++) {
+		for (int j = 0; j < img.cols; j++) {
+			printf("%d\t", img.at<char>(i, j));
+		}
+		printf("\n");
+	}
+}
+
 int main() {
    char *debug = getenv("DEBUG");
 
@@ -86,6 +95,18 @@ int main() {
 					vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 		imshow("Good matches", img_matches);
 	}
+
+	// Get the vector of points which have a corresponding spot in both
+	vector<Point2f> left_imp_points, right_imp_points;
+
+	for (size_t i = 0; i < good_matches.size(); i++) {
+		left_imp_points.push_back(left_keypoints[good_matches[i].queryIdx].pt);
+		right_imp_points.push_back(right_keypoints[good_matches[i].trainIdx].pt);
+	}
+	Mat F = findFundamentalMat(Mat(left_imp_points), Mat(right_imp_points), CV_FM_RANSAC);
+
+	if (debug)
+		showMatValue(F);
 
 	waitKey(0);
 	return 0;
