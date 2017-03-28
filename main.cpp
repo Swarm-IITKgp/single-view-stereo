@@ -39,18 +39,24 @@ int main() {
 		imshow("Right keypoints", img_keypoints_right);
 	}
 	// Calculate descriptors (feature vectors)
-	//OrbDescriptorExtractor extractor;
+	OrbDescriptorExtractor extractor;
 
 	Mat left_descriptors, right_descriptors;
 
-	//extractor.compute(left, left_keypoints, left_descriptors);
-	//extractor.compute(right, right_keypoints, right_descriptors);
+	extractor.compute(left, left_keypoints, left_descriptors);
+	extractor.compute(right, right_keypoints, right_descriptors);
+
+	// Conver the descriptors to CV_32F for Flann Matcher
+	if (left_descriptors.type() != CV_32F)
+		left_descriptors.convertTo(left_descriptors, CV_32F);
+	if (right_descriptors.type() != CV_32F)
+		right_descriptors.convertTo(right_descriptors, CV_32F);
 
 	// Matching descriptor vectors using FLANN matcher
 	FlannBasedMatcher matcher;
 	vector<DMatch> matches;
 
-	//matcher.match(left_descriptors, right_descriptors, matches);
+	matcher.match(left_descriptors, right_descriptors, matches);
 
 	double max_dist = 0, min_dist = 100;
 
@@ -66,6 +72,19 @@ int main() {
 	if (debug) {
 		printf("Max Dist: %f\n", max_dist);
 		printf("Min Dist: %f\n", min_dist);
+	}
+
+	vector<DMatch> good_matches;
+	for (int i = 0; i < left_descriptors.rows; i++)
+		if (matches[i].distance <= max(10*min_dist, 0.02))
+			good_matches.push_back(matches[i]);
+
+	if (debug) {
+		Mat img_matches;
+		drawMatches(left, left_keypoints, right, right_keypoints,
+					good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+					vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+		imshow("Good matches", img_matches);
 	}
 
 	waitKey(0);
