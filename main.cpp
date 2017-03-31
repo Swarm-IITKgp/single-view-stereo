@@ -17,6 +17,43 @@ void showMatValue(Mat &img) {
 	}
 }
 
+void showMatDoubleValue(Mat &img) {
+	for (int i = 0; i < img.rows; i++) {
+		for (int j = 0; j < img.cols; j++) {
+			printf("%f\t", img.at<double>(i, j));
+		}
+		printf("\n");
+	}
+}
+
+void readCalibrationMatrix(Mat &K, const char *filename) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (!fp)
+		exit(1);
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			float temp;
+			fscanf(fp, "%f", &temp);
+			K.at<double>(i, j) = temp;
+		}
+	}
+	fclose(fp);
+}
+
+void readDistortionCoefficients(Mat &D, const char *filename) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (!fp)
+		exit(1);
+
+	for (int i = 0; i < 5; i++) {
+		float temp;
+		fscanf(fp, "%f ", &temp);
+		D.at<double>(i, 0) = temp;
+	}
+}
+
 int main() {
    char *debug = getenv("DEBUG");
 
@@ -124,6 +161,24 @@ int main() {
 
 	if (debug)
 		showMatValue(F);
+
+	// Read the camera calibration matrix
+	if (debug)
+		printf("task: Read the camera calibration matrix\n");
+	Mat K = Mat::eye(3, 3, CV_64F);
+	readCalibrationMatrix(K, "camera_intrinsic_matrix.txt");
+
+	if (debug)
+		showMatDoubleValue(K);
+
+	// Read the camera distortion coefficients
+	if (debug)
+		printf("task: Read the camera distortion coefficients\n");
+	Mat D = Mat::zeros(5, 1, CV_64F);
+	readDistortionCoefficients(D, "camera_distortion_matrix.txt");
+
+	if (debug)
+		showMatDoubleValue(D);
 
 	waitKey(0);
 	return 0;
