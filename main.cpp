@@ -24,7 +24,6 @@ int main() {
 	Mat left = imread("left.jpg", 0);
 	Mat right = imread("right.jpg", 0);
 
-	// Show the images
 	if (debug) {
 		namedWindow("Left", WINDOW_AUTOSIZE);
 		namedWindow("Right", WINDOW_AUTOSIZE);
@@ -33,6 +32,8 @@ int main() {
 	}
 
 	// Detect the keypoints using the SURF detector
+	if (debug)
+		printf("task: Detect the keypoints using SURF detector\n");
 	int minHessian = 400;
 	vector<KeyPoint> left_keypoints, right_keypoints;
 	OrbFeatureDetector detector(minHessian);
@@ -47,7 +48,10 @@ int main() {
 		imshow("Left Keypoints", img_keypoints_left);
 		imshow("Right keypoints", img_keypoints_right);
 	}
+
 	// Calculate descriptors (feature vectors)
+	if (debug)
+		printf("task: Calculate descriptors (feature vectors)\n");
 	OrbDescriptorExtractor extractor;
 
 	Mat left_descriptors, right_descriptors;
@@ -55,13 +59,17 @@ int main() {
 	extractor.compute(left, left_keypoints, left_descriptors);
 	extractor.compute(right, right_keypoints, right_descriptors);
 
-	// Conver the descriptors to CV_32F for Flann Matcher
+	// Convert the descriptors to CV_32F for Flann Matcher
+	if (debug)
+		printf("task: Convert the descriptor to CV_32F for Flann Matcher\n");
 	if (left_descriptors.type() != CV_32F)
 		left_descriptors.convertTo(left_descriptors, CV_32F);
 	if (right_descriptors.type() != CV_32F)
 		right_descriptors.convertTo(right_descriptors, CV_32F);
 
 	// Matching descriptor vectors using FLANN matcher
+	if (debug)
+		printf("task: Matching descriptor vectors using FLANN matcher\n");
 	FlannBasedMatcher matcher;
 	vector<DMatch> matches;
 
@@ -70,6 +78,8 @@ int main() {
 	double max_dist = 0, min_dist = 100;
 
 	// Quick calculation of max and min distances between keypoints
+	if (debug)
+		printf("task: Quick calculation of max and min distances keypoints\n");
 	for (int i = 0; i < left_descriptors.rows; i++) {
 		double dist = matches[i].distance;
 		if (dist < min_dist)
@@ -83,6 +93,8 @@ int main() {
 		printf("Min Dist: %f\n", min_dist);
 	}
 
+	// Get the good matches ie. that have only little error value
+	printf("task: Get the good matches ie. that have only little error value\n");
 	vector<DMatch> good_matches;
 	for (int i = 0; i < left_descriptors.rows; i++)
 		if (matches[i].distance <= max(10*min_dist, 0.02))
@@ -97,12 +109,17 @@ int main() {
 	}
 
 	// Get the vector of points which have a corresponding spot in both
+	if (debug)
+		printf("task: Get the vector of points which have a corresponding spot in both\n");
 	vector<Point2f> left_imp_points, right_imp_points;
 
 	for (size_t i = 0; i < good_matches.size(); i++) {
 		left_imp_points.push_back(left_keypoints[good_matches[i].queryIdx].pt);
 		right_imp_points.push_back(right_keypoints[good_matches[i].trainIdx].pt);
 	}
+
+	// Finding The Fundamental Matrix
+	printf("task: Finding the Fundamental Matrix\n");
 	Mat F = findFundamentalMat(Mat(left_imp_points), Mat(right_imp_points), CV_FM_RANSAC);
 
 	if (debug)
