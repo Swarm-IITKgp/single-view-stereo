@@ -231,6 +231,8 @@ int main() {
 		cout << V_t << endl;
 	}
 
+	// Get the Translational vector
+	printf("sub-task: Get the Translational vector\n");
 	Mat t1(3, 1, CV_64F);
 	Mat t2(3, 1, CV_64F);
 	for (int i = 0; i < 3; i++) {
@@ -244,8 +246,8 @@ int main() {
 		cout << t2 << endl;
 	}
 
-	// Calculate the Rotational Vector now
-	Mat R1(3, 3, CV_64F), MatR2(3, 3, CV_64F);
+	// Calculate the Rotational Vector
+	printf("sub-task: Calculate the Rotational Vector\n");
 	Matx33d R1_, R2_, V_t_transpose;
 	Matx33d D1, D2;
 	D1(0, 1) = -1;
@@ -262,6 +264,66 @@ int main() {
 		cout << R1_ << endl;
 		cout << R2_ << endl;
 	}
+
+	// Calculate the Projection Matrix
+	printf("sub-task: Calculate the Projection Matrix\n");
+	Mat P1_1 = Mat::zeros(3, 4, CV_64F);
+	Mat P2_1 = Mat::zeros(3, 4, CV_64F);
+	Mat P1_2 = Mat::zeros(3, 4, CV_64F);
+	Mat P2_2 = Mat::zeros(3, 4, CV_64F);
+	Mat P1_3 = Mat::zeros(3, 4, CV_64F);
+	Mat P2_3 = Mat::zeros(3, 4, CV_64F);
+	Mat P1_4 = Mat::zeros(3, 4, CV_64F);
+	Mat P2_4 = Mat::zeros(3, 4, CV_64F);
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (i == j)
+				P1_1.at<double>(i, j) = 1;
+			P2_1.at<double>(i, j) = R1_(i, j);
+		}
+		P2_1.at<double>(i, 3) = t1.at<double>(i, 0);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (i == j)
+				P1_2.at<double>(i, j) = 1;
+			P2_2.at<double>(i, j) = R1_(i, j);
+		}
+		P2_2.at<double>(i, 3) = t2.at<double>(i, 0);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (i == j)
+				P1_3.at<double>(i, j) = 1;
+			P2_3.at<double>(i, j) = R2_(i, j);
+		}
+		P2_3.at<double>(i, 3) = t1.at<double>(i, 0);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (i == j)
+				P1_4.at<double>(i, j) = 1;
+			P2_4.at<double>(i, j) = R2_(i, j);
+		}
+		P2_4.at<double>(i, 3) = t1.at<double>(i, 0);
+	}
+
+	if (debug) {
+		printf("The Camera Projection Matrix values are:\n");
+		cout << "P1_1: \n" << P1_1 << endl;
+		cout << "P2_1: \n" << P2_1 << endl;
+		cout << "P1_2: \n" << P1_2 << endl;
+		cout << "P2_2: \n" << P2_2 << endl;
+		cout << "P1_3: \n" << P1_3 << endl;
+		cout << "P2_3: \n" << P2_3 << endl;
+		cout << "P1_4: \n" << P1_4 << endl;
+		cout << "P2_4: \n" << P2_4 << endl;
+	}
+
 
 	waitKey(0);
 	return 0;
