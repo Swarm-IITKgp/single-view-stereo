@@ -244,6 +244,25 @@ int main() {
 		cout << t2 << endl;
 	}
 
+	// Calculate the Rotational Vector now
+	Mat R1(3, 3, CV_64F), MatR2(3, 3, CV_64F);
+	Matx33d R1_, R2_, V_t_transpose;
+	Matx33d D1, D2;
+	D1(0, 1) = -1;
+	D1(1, 0) = 1;
+	D2(0, 1) = 1;
+	D2(1, 0) = -1;
+	transpose(V_t, V_t_transpose);
+	R1_ = U_t*D1*V_t.t();
+	R2_ = U_t*D2*V_t.t();
+
+
+	if (debug) {
+		cout << "The Rotational Vectors are:\n";
+		cout << R1_ << endl;
+		cout << R2_ << endl;
+	}
+
 	waitKey(0);
 	return 0;
 }
