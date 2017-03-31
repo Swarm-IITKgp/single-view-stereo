@@ -180,6 +180,32 @@ int main() {
 	if (debug)
 		showMatDoubleValue(D);
 
+	// Find the Essential Matrix
+	Mat Kt = Mat::zeros(3, 3, CV_64F);
+	if (debug)
+		printf("task: Find the Essential Matrix\n");
+
+	transpose(K, Kt);
+	if (debug) {
+		printf("Transpose of Camera Calibration Matrix K is:\n");
+		showMatDoubleValue(Kt);
+	}
+
+	Mat F_ = Mat::zeros(F.rows, F.cols, CV_64F);
+	for (int i = 0; i < F.rows; i++) {
+		for (int j = 0; j < F.cols; j++) {
+			F_.at<double>(i, j) = F.at<char>(i, j);
+		}
+	}
+
+	Mat E = Mat::zeros(3, 3, CV_64F);
+	E = Kt*F_*K;
+
+	if (debug) {
+		printf("Essential Matrix: \n");
+		showMatDoubleValue(E);
+	}
+
 	waitKey(0);
 	return 0;
 }
