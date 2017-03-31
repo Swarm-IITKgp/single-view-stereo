@@ -206,6 +206,44 @@ int main() {
 		showMatDoubleValue(E);
 	}
 
+	// Get T vector
+	printf("task: Get the R and T vectors\n");
+	Vec3d D_t;
+	Matx33d U_t, V_t;
+
+	// Get SVD of E
+	printf("sub-task: Get SVD of E\n");
+
+	SVD::compute(E, D_t, U_t, V_t, SVD::FULL_UV);
+	D_t[0] = 1;
+	D_t[1] = 1;
+	D_t[2] = 0;
+	Matx33d En = U_t*Matx33d::diag(D_t)*V_t;
+	SVD::compute(En, D_t, U_t, V_t, SVD::FULL_UV);
+
+	if (debug) {
+		printf("E decomposed into U_t, D_t & V_t using SVD\n");
+		printf("U_t:\n");
+		cout << U_t << endl;
+		printf("D_t: \n");
+		cout << D_t << endl;
+		printf("V_t: \n");
+		cout << V_t << endl;
+	}
+
+	Mat t1(3, 1, CV_64F);
+	Mat t2(3, 1, CV_64F);
+	for (int i = 0; i < 3; i++) {
+		t1.at<double>(i, 0) = U_t(i, 2);
+		t2.at<double>(i, 0) = -1*U_t(i, 2);
+	}
+
+	if (debug) {
+		printf("Values of Translational vector are:\n");
+		cout << t1 << endl;
+		cout << t2 << endl;
+	}
+
 	waitKey(0);
 	return 0;
 }
