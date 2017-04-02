@@ -131,7 +131,8 @@ int main() {
 	}
 
 	// Get the good matches ie. that have only little error value
-	printf("task: Get the good matches ie. that have only little error value\n");
+	if (debug)
+		printf("task: Get the good matches ie. that have only little error value\n");
 	vector<DMatch> good_matches;
 	for (int i = 0; i < left_descriptors.rows; i++)
 		if (matches[i].distance <= max(10*min_dist, 0.02))
@@ -156,7 +157,8 @@ int main() {
 	}
 
 	// Finding The Fundamental Matrix
-	printf("task: Finding the Fundamental Matrix\n");
+	if (debug)
+		printf("task: Finding the Fundamental Matrix\n");
 	Mat F = findFundamentalMat(Mat(left_imp_points), Mat(right_imp_points), CV_FM_RANSAC);
 
 	if (debug)
@@ -207,12 +209,14 @@ int main() {
 	}
 
 	// Get T vector
-	printf("task: Get the R and T vectors\n");
+	if (debug)
+		printf("task: Get the R and T vectors\n");
 	Vec3d D_t;
 	Matx33d U_t, V_t;
 
 	// Get SVD of E
-	printf("sub-task: Get SVD of E\n");
+	if (debug)
+		printf("sub-task: Get SVD of E\n");
 
 	SVD::compute(E, D_t, U_t, V_t, SVD::FULL_UV);
 	D_t[0] = 1;
@@ -232,7 +236,8 @@ int main() {
 	}
 
 	// Get the Translational vector
-	printf("sub-task: Get the Translational vector\n");
+	if (debug)
+		printf("sub-task: Get the Translational vector\n");
 	Mat t1(3, 1, CV_64F);
 	Mat t2(3, 1, CV_64F);
 	for (int i = 0; i < 3; i++) {
@@ -247,7 +252,8 @@ int main() {
 	}
 
 	// Calculate the Rotational Vector
-	printf("sub-task: Calculate the Rotational Vector\n");
+	if (debug)
+		printf("sub-task: Calculate the Rotational Vector\n");
 	Matx33d R1_, R2_, V_t_transpose;
 	Matx33d D1, D2;
 	D1(0, 1) = -1;
@@ -266,7 +272,8 @@ int main() {
 	}
 
 	// Calculate the Projection Matrix
-	printf("sub-task: Calculate the Projection Matrix\n");
+	if (debug)
+		printf("sub-task: Calculate the Projection Matrix\n");
 	Mat P1_1 = Mat::zeros(3, 4, CV_64F);
 	Mat P2_1 = Mat::zeros(3, 4, CV_64F);
 	Mat P1_2 = Mat::zeros(3, 4, CV_64F);
@@ -284,6 +291,8 @@ int main() {
 		}
 		P2_1.at<double>(i, 3) = t1.at<double>(i, 0);
 	}
+	P1_1 = K*P1_1;
+	P2_1 = K*P2_1;
 
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
@@ -293,6 +302,8 @@ int main() {
 		}
 		P2_2.at<double>(i, 3) = t2.at<double>(i, 0);
 	}
+	P1_2 = K*P1_2;
+	P2_2 = K*P2_2;
 
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
@@ -302,6 +313,8 @@ int main() {
 		}
 		P2_3.at<double>(i, 3) = t1.at<double>(i, 0);
 	}
+	P1_3 = K*P1_3;
+	P2_3 = K*P2_3;
 
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
@@ -309,8 +322,10 @@ int main() {
 				P1_4.at<double>(i, j) = 1;
 			P2_4.at<double>(i, j) = R2_(i, j);
 		}
-		P2_4.at<double>(i, 3) = t1.at<double>(i, 0);
+		P2_4.at<double>(i, 3) = t2.at<double>(i, 0);
 	}
+	P1_4 = K*P1_4;
+	P2_4 = K*P2_4;
 
 	if (debug) {
 		printf("The Camera Projection Matrix values are:\n");
