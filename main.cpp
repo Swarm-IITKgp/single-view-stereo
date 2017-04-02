@@ -54,6 +54,36 @@ void readDistortionCoefficients(Mat &D, const char *filename) {
 	}
 }
 
+void scale_projection_matrix(Mat &P) {
+	float scale = 1.0;
+	for (int i = 0; i < P.cols; i++) {
+		scale = P.at<double>(3, i);
+		if (isnan(scale))
+			scale = 1;
+
+		printf("scaling factor: %f\n", scale);
+		for (int j = 0; j < P.rows; j++) {
+			P.at<double>(j, i) = P.at<double>(j, i) / scale;
+		}
+	}
+}
+
+void createMat(Mat &X, vector<Point> &v) {
+	for (int i = 0; i < v.size(); i++) {
+		X.at<double>(0, i) = v[i].x;
+		X.at<double>(1, i) = v[i].y;
+	}
+}
+
+int is_good_solution(Mat &P) {
+	int is_good = 1;
+	for (int i = 0; i < P.cols; i++) {
+		if (!isnan(P.at<double>(3, i)) && P.at<double>(2, i) < 0)
+			is_good = 0;
+	}
+	return is_good;
+}
+
 int main() {
    char *debug = getenv("DEBUG");
 
@@ -339,6 +369,48 @@ int main() {
 		cout << "P2_4: \n" << P2_4 << endl;
 	}
 
+	// Get the corresponding 3D points for each projection matrix set
+	if (debug)
+		printf("task: Get the corresponding 3D for each projection matrix set\n");
+
+	Mat points_3D_1, points_3D_2, points_3D_3, points_3D_4;
+	Mat left_imp_points_mat = Mat(2, left_imp_points.size(), CV_64F);
+	Mat right_imp_points_mat = Mat(2, right_imp_points.size(), CV_64F);
+	triangulatePoints(P1_1, P2_1, left_imp_points_mat, right_imp_points_mat, points_3D_1);
+	triangulatePoints(P1_2, P2_2, left_imp_points_mat, right_imp_points_mat, points_3D_2);
+	triangulatePoints(P1_3, P2_3, left_imp_points_mat, right_imp_points_mat, points_3D_3);
+	triangulatePoints(P1_4, P2_4, left_imp_points_mat, right_imp_points_mat, points_3D_4);
+
+	scale_projection_matrix(points_3D_1);
+	scale_projection_matrix(points_3D_2);
+	scale_projection_matrix(points_3D_3);
+	scale_projection_matrix(points_3D_4);
+
+	if (is_good_solution(points_3D_1)) {
+		printf("3D_1 rocks\n");
+	}
+	if (is_good_solution(points_3D_2)) {
+		printf("3D_2 rocks\n");
+	}
+	if (is_good_solution(points_3D_3)) {
+		printf("3D_3 rocks\n");
+	}
+	if (is_good_solution(points_3D_4)) {
+		printf("3D_4 rocks\n");
+	}
+
+	printf("ROWS: %d\n", points_3D_1.rows);
+	printf("COLS: %d\n", points_3D_1.cols);
+	if (debug) {
+		printf("The points_3D_1 mat is:\n");
+		cout << points_3D_1 << endl;
+		printf("The points_3D_2 mat is:\n");
+		cout << points_3D_2 << endl;
+		printf("The points_3D_3 mat is:\n");
+		cout << points_3D_3 << endl;
+		printf("The points_3D_4 mat is:\n");
+		cout << points_3D_4 << endl;
+	}
 
 	waitKey(0);
 	return 0;
