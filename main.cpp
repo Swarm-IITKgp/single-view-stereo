@@ -462,6 +462,25 @@ int main() {
 		imshow("Right Undistorted image", right_undistorted);
 	}
 
+	// Get the disparity map using StereoBM
+	StereoBM sbm;
+	Mat disparity_map;
+	sbm.state->SADWindowSize = 9;
+	sbm.state->numberOfDisparities = 112;
+	sbm.state->preFilterSize = 5;
+	sbm.state->preFilterCap = 61;
+	sbm.state->minDisparity = -39;
+	sbm.state->textureThreshold = 507;
+	sbm.state->uniquenessRatio = 0;
+	sbm.state->speckleWindowSize = 0;
+	sbm.state->speckleRange = 8;
+	sbm.state->disp12MaxDiff = 1;
+
+	sbm(left_undistorted, right_undistorted, disparity_map);
+
+	if (debug)
+		imshow("Disparity Map", disparity_map);
+
 	waitKey(0);
 	return 0;
 }
