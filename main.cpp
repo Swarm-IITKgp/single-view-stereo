@@ -50,7 +50,7 @@ void readDistortionCoefficients(Mat &D, const char *filename) {
 	for (int i = 0; i < 5; i++) {
 		float temp;
 		fscanf(fp, "%f ", &temp);
-		D.at<double>(i, 0) = temp;
+		D.at<double>(0, i) = temp;
 	}
 }
 
@@ -207,7 +207,7 @@ int main() {
 	// Read the camera distortion coefficients
 	if (debug)
 		printf("task: Read the camera distortion coefficients\n");
-	Mat D = Mat::zeros(5, 1, CV_64F);
+	Mat D = Mat::zeros(1, 5, CV_64F);
 	readDistortionCoefficients(D, "camera_distortion_matrix.txt");
 
 	if (debug)
@@ -426,6 +426,26 @@ int main() {
 		P2 = Mat(P2_4);
 		R = Mat(R2_);
 		t = Mat(t2);
+	}
+
+	// Get the rectification parameters
+	if (debug)
+		printf("task: Get the rectification parameters");
+	Rect validRoi[2];
+	Mat R1, R2, t_rectified, P1_rectified, P2_rectified, Q;
+	stereoRectify(K, D, K, D, left.size(), R, t, R1, R2, P1_rectified, P2_rectified, Q, CALIB_ZERO_DISPARITY, 1, left.size(), &validRoi[0], &validRoi[1]);
+
+	if (debug) {
+		cout << "The rectified R1 is: " << endl;
+		cout << R1 << endl;
+		cout << "The rectified R2 is: " << endl;
+		cout << R2 << endl;
+		cout << "The P1_rectified is: " << endl;
+		cout << P1_rectified << endl;
+		cout << "The P2_rectified is: " << endl;
+		cout << P2_rectified << endl;
+		cout << "The Q value is: " << endl;
+		cout << Q << endl;
 	}
 
 	waitKey(0);
