@@ -61,7 +61,6 @@ void scale_projection_matrix(Mat &P) {
 		if (isnan(scale))
 			scale = 1;
 
-		printf("scaling factor: %f\n", scale);
 		for (int j = 0; j < P.rows; j++) {
 			P.at<double>(j, i) = P.at<double>(j, i) / scale;
 		}
@@ -376,6 +375,7 @@ int main() {
 	Mat points_3D_1, points_3D_2, points_3D_3, points_3D_4;
 	Mat left_imp_points_mat = Mat(2, left_imp_points.size(), CV_64F);
 	Mat right_imp_points_mat = Mat(2, right_imp_points.size(), CV_64F);
+	Mat P1, P2, R, t;
 	triangulatePoints(P1_1, P2_1, left_imp_points_mat, right_imp_points_mat, points_3D_1);
 	triangulatePoints(P1_2, P2_2, left_imp_points_mat, right_imp_points_mat, points_3D_2);
 	triangulatePoints(P1_3, P2_3, left_imp_points_mat, right_imp_points_mat, points_3D_3);
@@ -386,21 +386,6 @@ int main() {
 	scale_projection_matrix(points_3D_3);
 	scale_projection_matrix(points_3D_4);
 
-	if (is_good_solution(points_3D_1)) {
-		printf("3D_1 rocks\n");
-	}
-	if (is_good_solution(points_3D_2)) {
-		printf("3D_2 rocks\n");
-	}
-	if (is_good_solution(points_3D_3)) {
-		printf("3D_3 rocks\n");
-	}
-	if (is_good_solution(points_3D_4)) {
-		printf("3D_4 rocks\n");
-	}
-
-	printf("ROWS: %d\n", points_3D_1.rows);
-	printf("COLS: %d\n", points_3D_1.cols);
 	if (debug) {
 		printf("The points_3D_1 mat is:\n");
 		cout << points_3D_1 << endl;
@@ -410,6 +395,35 @@ int main() {
 		cout << points_3D_3 << endl;
 		printf("The points_3D_4 mat is:\n");
 		cout << points_3D_4 << endl;
+	}
+
+	if (is_good_solution(points_3D_1)) {
+		printf("Selecting solution 1\n");
+		P1 = Mat(P1_1);
+		P2 = Mat(P2_2);
+		R = Mat(R1_);
+		t = Mat(t1);
+	}
+	if (is_good_solution(points_3D_2)) {
+		printf("Selecting solution 2\n");
+		P1 = Mat(P1_2);
+		P2 = Mat(P2_2);
+		R = Mat(R1_);
+		t = Mat(t2);
+	}
+	if (is_good_solution(points_3D_3)) {
+		printf("Selecting solution 3\n");
+		P1 = Mat(P1_3);
+		P2 = Mat(P2_3);
+		R = Mat(R2_);
+		t = Mat(t1);
+	}
+	if (is_good_solution(points_3D_4)) {
+		printf("Selecting solution 4\n");
+		P1 = Mat(P1_4);
+		P2 = Mat(P2_4);
+		R = Mat(R2_);
+		t = Mat(t2);
 	}
 
 	waitKey(0);
