@@ -59,7 +59,7 @@ void scale_projection_matrix(Mat &P) {
 	for (int i = 0; i < P.cols; i++) {
 		scale = P.at<double>(3, i);
 		if (isnan(scale))
-			scale = 1;
+			continue;
 
 		for (int j = 0; j < P.rows; j++) {
 			P.at<double>(j, i) = P.at<double>(j, i) / scale;
@@ -74,10 +74,12 @@ void createMat(Mat &X, vector<Point> &v) {
 	}
 }
 
-int is_good_solution(Mat &P) {
+int is_good_solution(Mat &P, Mat &t) {
 	int is_good = 1;
 	for (int i = 0; i < P.cols; i++) {
-		if (!isnan(P.at<double>(3, i)) && P.at<double>(2, i) < 0)
+		if (isnan(P.at<double>(2, i)))
+			continue;
+		if (P.at<double>(2, i) < t.at<double>(2, 0))
 			is_good = 0;
 	}
 	return is_good;
@@ -248,9 +250,9 @@ int main() {
 		printf("sub-task: Get SVD of E\n");
 
 	SVD::compute(E, D_t, U_t, V_t, SVD::FULL_UV);
-	D_t[0] = 1;
-	D_t[1] = 1;
-	D_t[2] = 0;
+	//D_t[0] = 1;
+	//D_t[1] = 1;
+	//D_t[2] = 0;
 	Matx33d En = U_t*Matx33d::diag(D_t)*V_t;
 	SVD::compute(En, D_t, U_t, V_t, SVD::FULL_UV);
 
@@ -397,28 +399,28 @@ int main() {
 		cout << points_3D_4 << endl;
 	}
 
-	if (is_good_solution(points_3D_1)) {
+	if (is_good_solution(points_3D_1, t1)) {
 		printf("Selecting solution 1\n");
 		P1 = Mat(P1_1);
 		P2 = Mat(P2_2);
 		R = Mat(R1_);
 		t = Mat(t1);
 	}
-	if (is_good_solution(points_3D_2)) {
+	if (is_good_solution(points_3D_2, t2)) {
 		printf("Selecting solution 2\n");
 		P1 = Mat(P1_2);
 		P2 = Mat(P2_2);
 		R = Mat(R1_);
 		t = Mat(t2);
 	}
-	if (is_good_solution(points_3D_3)) {
+	if (is_good_solution(points_3D_3, t1)) {
 		printf("Selecting solution 3\n");
 		P1 = Mat(P1_3);
 		P2 = Mat(P2_3);
 		R = Mat(R2_);
 		t = Mat(t1);
 	}
-	if (is_good_solution(points_3D_4)) {
+	if (is_good_solution(points_3D_4, t2)) {
 		printf("Selecting solution 4\n");
 		P1 = Mat(P1_4);
 		P2 = Mat(P2_4);
