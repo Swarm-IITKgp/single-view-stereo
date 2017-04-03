@@ -450,6 +450,18 @@ int main() {
 		cout << Q << endl;
 	}
 
+	// Rectify the initial left and right images
+	if (debug)
+		printf("task: Rectify the initial left and right images");
+	Mat left_undistorted, right_undistorted;
+	undistort(left, left_undistorted, K, D);
+	undistort(right, right_undistorted, K, D);
+
+	if (debug) {
+		imshow("Left Undistorted image", left_undistorted);
+		imshow("Right Undistorted image", right_undistorted);
+	}
+
 	waitKey(0);
 	return 0;
 }
