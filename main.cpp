@@ -481,6 +481,9 @@ int main() {
 	if (debug)
 		imshow("Disparity Map", disparity_map);
 
+	Mat depth_map;
+	reprojectImageTo3D(disparity_map, depth_map, Q, true);
+
 	waitKey(0);
 	return 0;
 }
