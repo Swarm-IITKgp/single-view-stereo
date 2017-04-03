@@ -289,8 +289,10 @@ int main() {
 	Matx33d D1, D2;
 	D1(0, 1) = -1;
 	D1(1, 0) = 1;
+	D1(2, 2) = 1;
 	D2(0, 1) = 1;
 	D2(1, 0) = -1;
+	D2(2, 2) = 1;
 	transpose(V_t, V_t_transpose);
 	R1_ = U_t*D1*V_t.t();
 	R2_ = U_t*D2*V_t.t();
