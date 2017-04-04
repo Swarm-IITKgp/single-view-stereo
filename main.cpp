@@ -253,8 +253,8 @@ int main() {
 	//D_t[0] = 1;
 	//D_t[1] = 1;
 	//D_t[2] = 0;
-	Matx33d En = U_t*Matx33d::diag(D_t)*V_t;
-	SVD::compute(En, D_t, U_t, V_t, SVD::FULL_UV);
+	// Matx33d En = U_t*Matx33d::diag(D_t)*V_t;
+	// SVD::compute(En, D_t, U_t, V_t, SVD::FULL_UV);
 
 	if (debug) {
 		printf("E decomposed into U_t, D_t & V_t using SVD\n");
@@ -465,8 +465,8 @@ int main() {
 	// Get the disparity map using StereoBM
 	StereoBM sbm;
 	Mat disparity_map;
-	sbm.state->SADWindowSize = 9;
-	sbm.state->numberOfDisparities = 112;
+	sbm.state->SADWindowSize = 5;
+	sbm.state->numberOfDisparities = 96;
 	sbm.state->preFilterSize = 5;
 	sbm.state->preFilterCap = 61;
 	sbm.state->minDisparity = -39;
@@ -481,6 +481,7 @@ int main() {
 	if (debug)
 		imshow("Disparity Map", disparity_map);
 
+	imwrite("disparity_map.jpg", disparity_map);
 	Mat depth_map;
 	reprojectImageTo3D(disparity_map, depth_map, Q, true);
 
