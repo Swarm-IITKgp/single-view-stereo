@@ -478,10 +478,18 @@ int main() {
 
 	sbm(left_undistorted, right_undistorted, disparity_map);
 
-	if (debug)
-		imshow("Disparity Map", disparity_map);
+	// Apply Bilateral Filter
+	Mat disparity_map_filtered_, disparity_map_filtered;
+	disparity_map.convertTo(disparity_map_filtered_, CV_8UC1);
+	for (int i = 1; i < 5; i = i + 2) {
+		bilateralFilter(disparity_map_filtered_, disparity_map_filtered, i, i*2, i/2);
+	}
 
-	imwrite("disparity_map.jpg", disparity_map);
+	if (debug)
+		imshow("Disparity Map", disparity_map_filtered);
+
+	imwrite("disparity_map.jpg", disparity_map_filtered);
+	disparity_map_filtered.convertTo(disparity_map, CV_32F);
 	Mat depth_map;
 	reprojectImageTo3D(disparity_map, depth_map, Q, true);
 
