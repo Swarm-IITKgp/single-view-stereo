@@ -85,9 +85,16 @@ int is_good_solution(Mat &P, Mat &t) {
 	return is_good;
 }
 
-int main() {
-   char *debug = getenv("DEBUG");
+void write_time(FILE *fp, char *task, int value) {
+	fprintf(fp, "%s: %d\n", task, value);
+}
 
+int main() {
+	FILE *fp;
+	char *debug = getenv("DEBUG");
+	time_t initial_t, final_t;
+
+	fp = fopen("time.log", "w");
 	// Read the images as grayscale
 	Mat left = imread("left.jpg", 0);
 	Mat right = imread("right.jpg", 0);
@@ -99,15 +106,18 @@ int main() {
 		imshow("Right", right);
 	}
 
-	// Detect the keypoints using the SURF detector
+	// Detect the keypoints using the ORB detector
 	if (debug)
 		printf("task: Detect the keypoints using SURF detector\n");
+	initial_t = time(NULL);
 	int minHessian = 400;
 	vector<KeyPoint> left_keypoints, right_keypoints;
 	OrbFeatureDetector detector(minHessian);
 
 	detector.detect(left, left_keypoints);
 	detector.detect(right, right_keypoints);
+	final_t = time(NULL);
+	write_time(fp, "Detect the keypoints using ORB Detector", final_t-initial_t);
 
 	if (debug) {
 		Mat img_keypoints_left, img_keypoints_right;
@@ -120,12 +130,15 @@ int main() {
 	// Calculate descriptors (feature vectors)
 	if (debug)
 		printf("task: Calculate descriptors (feature vectors)\n");
+	initial_t = time(NULL);
 	OrbDescriptorExtractor extractor;
 
 	Mat left_descriptors, right_descriptors;
 
 	extractor.compute(left, left_keypoints, left_descriptors);
 	extractor.compute(right, right_keypoints, right_descriptors);
+	final_t = time(NULL);
+	write_time(fp, "Calculate descriptors (feature vectors)", final_t - initial_t);
 
 	// Convert the descriptors to CV_32F for Flann Matcher
 	if (debug)
@@ -138,10 +151,13 @@ int main() {
 	// Matching descriptor vectors using FLANN matcher
 	if (debug)
 		printf("task: Matching descriptor vectors using FLANN matcher\n");
+	initial_t = time(NULL);
 	FlannBasedMatcher matcher;
 	vector<DMatch> matches;
 
 	matcher.match(left_descriptors, right_descriptors, matches);
+	final_t = time(NULL);
+	write_time(fp, "Matching descriptor vectors using FLANN matcher", final_t - initial_t);
 
 	double max_dist = 0, min_dist = 100;
 
@@ -164,10 +180,13 @@ int main() {
 	// Get the good matches ie. that have only little error value
 	if (debug)
 		printf("task: Get the good matches ie. that have only little error value\n");
+	initial_t = time(NULL);
 	vector<DMatch> good_matches;
 	for (int i = 0; i < left_descriptors.rows; i++)
 		if (matches[i].distance <= max(10*min_dist, 0.02))
 			good_matches.push_back(matches[i]);
+	final_t = time(NULL);
+	write_time(fp, "Get the good matches ie. that have only little error value", final_t - initial_t);
 
 	if (debug) {
 		Mat img_matches;
@@ -180,17 +199,23 @@ int main() {
 	// Get the vector of points which have a corresponding spot in both
 	if (debug)
 		printf("task: Get the vector of points which have a corresponding spot in both\n");
+	initial_t = time(NULL);
 	vector<Point2f> left_imp_points, right_imp_points;
 
 	for (size_t i = 0; i < good_matches.size(); i++) {
 		left_imp_points.push_back(left_keypoints[good_matches[i].queryIdx].pt);
 		right_imp_points.push_back(right_keypoints[good_matches[i].trainIdx].pt);
 	}
+	final_t = time(NULL);
+	write_time(fp, "Get the vector of points which have a corresponding spot in both", final_t - initial_t);
 
 	// Finding The Fundamental Matrix
 	if (debug)
 		printf("task: Finding the Fundamental Matrix\n");
+	initial_t = time(NULL);
 	Mat F = findFundamentalMat(Mat(left_imp_points), Mat(right_imp_points), CV_FM_RANSAC);
+	final_t = time(NULL);
+	write_time(fp, "Finding the Fundamental Matrix", final_t - initial_t);
 
 	if (debug)
 		showMatValue(F);
