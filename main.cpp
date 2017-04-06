@@ -79,7 +79,7 @@ int is_good_solution(Mat &P, Mat &t) {
 	for (int i = 0; i < P.cols; i++) {
 		if (isnan(P.at<double>(2, i)))
 			continue;
-		if (P.at<double>(2, i) < t.at<double>(2, 0))
+		if (P.at<double>(2, i) < t.at<double>(2, 0) || P.at<double>(2, i) < 0)
 			is_good = 0;
 	}
 	return is_good;
