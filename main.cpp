@@ -92,13 +92,11 @@ void write_time(FILE *fp, char *task, int value) {
 void undistort_rot( InputArray _src, OutputArray _dst, InputArray _cameraMatrix,
                     InputArray _distCoeffs, InputArray _newCameraMatrix, InputArray Rot)
 {
-    Mat src = _src.getMat(), cameraMatrix = _cameraMatrix.getMat();
+	Mat src = _src.getMat(), cameraMatrix = _cameraMatrix.getMat();
     Mat distCoeffs = _distCoeffs.getMat(), newCameraMatrix = _newCameraMatrix.getMat();
 
     _dst.create( src.size(), src.type() );
     Mat dst = _dst.getMat();
-
-    CV_Assert( dst.data != src.data );
 
     int stripe_size0 = std::min(std::max(1, (1 << 12) / std::max(src.cols, 1)), src.rows);
     Mat map1(stripe_size0, src.cols, CV_16SC2), map2(stripe_size0, src.cols, CV_16UC1);
@@ -157,10 +155,11 @@ int main() {
 	initial_t = time(NULL);
 	int minHessian = 400;
 	vector<KeyPoint> left_keypoints, right_keypoints;
-	OrbFeatureDetector detector(minHessian);
+	Mat left_descriptors, right_descriptors;
+	Ptr<ORB> orb = ORB::create();
 
-	detector.detect(left, left_keypoints);
-	detector.detect(right, right_keypoints);
+	orb->detectAndCompute(left, Mat(), left_keypoints, left_descriptors, false);
+	orb->detectAndCompute(right, Mat(), right_keypoints, right_descriptors, false);
 	final_t = time(NULL);
 	write_time(fp, "Detect the keypoints using ORB Detector", final_t-initial_t);
 
@@ -171,19 +170,6 @@ int main() {
 		imshow("Left Keypoints", img_keypoints_left);
 		imshow("Right keypoints", img_keypoints_right);
 	}
-
-	// Calculate descriptors (feature vectors)
-	if (debug)
-		printf("task: Calculate descriptors (feature vectors)\n");
-	initial_t = time(NULL);
-	OrbDescriptorExtractor extractor;
-
-	Mat left_descriptors, right_descriptors;
-
-	extractor.compute(left, left_keypoints, left_descriptors);
-	extractor.compute(right, right_keypoints, right_descriptors);
-	final_t = time(NULL);
-	write_time(fp, "Calculate descriptors (feature vectors)", final_t - initial_t);
 
 	// Convert the descriptors to CV_32F for Flann Matcher
 	if (debug)
@@ -284,7 +270,7 @@ int main() {
 		showMatDoubleValue(D);
 
 	// Find the Essential Matrix
-	Mat Kt = Mat::zeros(3, 3, CV_32F);
+	Mat Kt = Mat::zeros(3, 3, CV_64F);
 	if (debug)
 		printf("task: Find the Essential Matrix\n");
 
@@ -505,7 +491,8 @@ int main() {
 		printf("task: Get the rectification parameters\n");
 	Rect validRoi[2];
 	Mat R1, R2, t_rectified, P1_rectified, P2_rectified, Q;
-	stereoRectify(K, D, K, D, left.size(), R, t, R1, R2, P1_rectified, P2_rectified, Q, CALIB_ZERO_DISPARITY, 1, left.size(), &validRoi[0], &validRoi[1]);
+	Size s = left.size();
+	stereoRectify(K, D, K, D, s, R, t, R1, R2, P1_rectified, P2_rectified, Q, CALIB_ZERO_DISPARITY, 1, s, &validRoi[0], &validRoi[1]);
 
 	if (debug) {
 		cout << "The rectified R1 is: " << endl;
@@ -534,20 +521,10 @@ int main() {
 	}
 
 	// Get the disparity map using StereoBM
-	StereoBM sbm;
 	Mat disparity_map;
-	sbm.state->SADWindowSize = 5;
-	sbm.state->numberOfDisparities = 96;
-	sbm.state->preFilterSize = 5;
-	sbm.state->preFilterCap = 61;
-	sbm.state->minDisparity = -39;
-	sbm.state->textureThreshold = 507;
-	sbm.state->uniquenessRatio = 0;
-	sbm.state->speckleWindowSize = 0;
-	sbm.state->speckleRange = 8;
-	sbm.state->disp12MaxDiff = 1;
+	Ptr<StereoBM> sbm = StereoBM::create(16*5, 21);
 
-	sbm(left_undistorted, right_undistorted, disparity_map);
+	sbm->compute(left_undistorted, right_undistorted, disparity_map);
 
 	// Apply Bilateral Filter
 	Mat disparity_map_filtered_, disparity_map_filtered;
