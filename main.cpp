@@ -89,6 +89,51 @@ void write_time(FILE *fp, char *task, int value) {
 	fprintf(fp, "%s: %d\n", task, value);
 }
 
+void undistort_rot( InputArray _src, OutputArray _dst, InputArray _cameraMatrix,
+                    InputArray _distCoeffs, InputArray _newCameraMatrix, InputArray Rot)
+{
+    Mat src = _src.getMat(), cameraMatrix = _cameraMatrix.getMat();
+    Mat distCoeffs = _distCoeffs.getMat(), newCameraMatrix = _newCameraMatrix.getMat();
+
+    _dst.create( src.size(), src.type() );
+    Mat dst = _dst.getMat();
+
+    CV_Assert( dst.data != src.data );
+
+    int stripe_size0 = std::min(std::max(1, (1 << 12) / std::max(src.cols, 1)), src.rows);
+    Mat map1(stripe_size0, src.cols, CV_16SC2), map2(stripe_size0, src.cols, CV_16UC1);
+
+    Mat_<double> A, Ar, I = Mat_<double>::eye(3,3);
+
+    cameraMatrix.convertTo(A, CV_64F);
+    if( !distCoeffs.empty() )
+        distCoeffs = Mat_<double>(distCoeffs);
+    else
+    {
+        distCoeffs.create(5, 1, CV_64F);
+        distCoeffs = 0.;
+    }
+
+    if( !newCameraMatrix.empty() )
+        newCameraMatrix.convertTo(Ar, CV_64F);
+    else
+        A.copyTo(Ar);
+
+    double v0 = Ar(1, 2);
+    for( int y = 0; y < src.rows; y += stripe_size0 )
+    {
+        int stripe_size = std::min( stripe_size0, src.rows - y );
+        Ar(1, 2) = v0 - y;
+        Mat map1_part = map1.rowRange(0, stripe_size),
+            map2_part = map2.rowRange(0, stripe_size),
+            dst_part = dst.rowRange(y, y + stripe_size);
+
+        initUndistortRectifyMap( A, distCoeffs, Rot, Ar, Size(src.cols, stripe_size),
+                                 map1_part.type(), map1_part, map2_part );
+        remap( src, dst_part, map1_part, map2_part, INTER_LINEAR, BORDER_CONSTANT );
+    }
+}
+
 int main() {
 	FILE *fp;
 	char *debug = getenv("DEBUG");
@@ -239,7 +284,7 @@ int main() {
 		showMatDoubleValue(D);
 
 	// Find the Essential Matrix
-	Mat Kt = Mat::zeros(3, 3, CV_64F);
+	Mat Kt = Mat::zeros(3, 3, CV_32F);
 	if (debug)
 		printf("task: Find the Essential Matrix\n");
 
@@ -457,7 +502,7 @@ int main() {
 
 	// Get the rectification parameters
 	if (debug)
-		printf("task: Get the rectification parameters");
+		printf("task: Get the rectification parameters\n");
 	Rect validRoi[2];
 	Mat R1, R2, t_rectified, P1_rectified, P2_rectified, Q;
 	stereoRectify(K, D, K, D, left.size(), R, t, R1, R2, P1_rectified, P2_rectified, Q, CALIB_ZERO_DISPARITY, 1, left.size(), &validRoi[0], &validRoi[1]);
@@ -479,8 +524,9 @@ int main() {
 	if (debug)
 		printf("task: Rectify the initial left and right images");
 	Mat left_undistorted, right_undistorted;
-	undistort(left, left_undistorted, K, D);
-	undistort(right, right_undistorted, K, D);
+	Mat K_new;
+	undistort_rot(left, left_undistorted, K, D, K_new, R);
+	undistort_rot(right, right_undistorted, K, D, K_new, R);
 
 	if (debug) {
 		imshow("Left Undistorted image", left_undistorted);
