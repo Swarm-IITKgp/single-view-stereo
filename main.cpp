@@ -100,10 +100,10 @@ int main() {
 	Mat right = imread("right.jpg", 0);
 
 	if (debug) {
-		namedWindow("Left", WINDOW_AUTOSIZE);
-		namedWindow("Right", WINDOW_AUTOSIZE);
-		imshow("Left", left);
-		imshow("Right", right);
+		//namedWindow("Left", WINDOW_AUTOSIZE);
+		//namedWindow("Right", WINDOW_AUTOSIZE);
+		//imshow("Left", left);
+		//imshow("Right", right);
 	}
 
 	// Detect the keypoints using the ORB detector
@@ -123,8 +123,8 @@ int main() {
 		Mat img_keypoints_left, img_keypoints_right;
 		drawKeypoints(left, left_keypoints, img_keypoints_left, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
 		drawKeypoints(right, right_keypoints, img_keypoints_right, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-		imshow("Left Keypoints", img_keypoints_left);
-		imshow("Right keypoints", img_keypoints_right);
+		//imshow("Left Keypoints", img_keypoints_left);
+		//imshow("Right keypoints", img_keypoints_right);
 	}
 
 	// Calculate descriptors (feature vectors)
@@ -193,7 +193,7 @@ int main() {
 		drawMatches(left, left_keypoints, right, right_keypoints,
 					good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
 					vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-		imshow("Good matches", img_matches);
+		//imshow("Good matches", img_matches);
 	}
 
 	// Get the vector of points which have a corresponding spot in both
@@ -483,8 +483,8 @@ int main() {
 	undistort(right, right_undistorted, K, D);
 
 	if (debug) {
-		imshow("Left Undistorted image", left_undistorted);
-		imshow("Right Undistorted image", right_undistorted);
+		//imshow("Left Undistorted image", left_undistorted);
+		//imshow("Right Undistorted image", right_undistorted);
 	}
 
 	// Get the disparity map using StereoBM
@@ -511,7 +511,7 @@ int main() {
 	}
 
 	if (debug)
-		imshow("Disparity Map", disparity_map_filtered);
+		//imshow("Disparity Map", disparity_map_filtered);
 
 	imwrite("disparity_map.jpg", disparity_map_filtered);
 	disparity_map_filtered.convertTo(disparity_map, CV_32F);
