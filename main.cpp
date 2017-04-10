@@ -209,6 +209,13 @@ int main() {
 	final_t = time(NULL);
 	write_time(fp, "Get the vector of points which have a corresponding spot in both", final_t - initial_t);
 
+	if (debug) {
+		printf("The Left Important Points are: \n");
+		cout << left_imp_points << endl;
+		printf("The Right Important Points are: \n");
+		cout << right_imp_points << endl;
+	}
+
 	// Finding The Fundamental Matrix
 	if (debug)
 		printf("task: Finding the Fundamental Matrix\n");
