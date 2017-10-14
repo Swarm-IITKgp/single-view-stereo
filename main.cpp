@@ -457,12 +457,15 @@ int main() {
 		cout << points_3D_4 << endl;
 	}
 
+            bool found_solution=false;
+
 	if (is_good_solution(points_3D_1, t1)) {
 		printf("Selecting solution 1\n");
 		P1 = Mat(P1_1);
 		P2 = Mat(P2_2);
 		R = Mat(R1_);
 		t = Mat(t1);
+                          found_solution=true;
 	}
 	if (is_good_solution(points_3D_2, t2)) {
 		printf("Selecting solution 2\n");
@@ -470,6 +473,7 @@ int main() {
 		P2 = Mat(P2_2);
 		R = Mat(R1_);
 		t = Mat(t2);
+                          found_solution=true;
 	}
 	if (is_good_solution(points_3D_3, t1)) {
 		printf("Selecting solution 3\n");
@@ -477,6 +481,7 @@ int main() {
 		P2 = Mat(P2_3);
 		R = Mat(R2_);
 		t = Mat(t1);
+                          found_solution=true;
 	}
 	if (is_good_solution(points_3D_4, t2)) {
 		printf("Selecting solution 4\n");
@@ -484,7 +489,14 @@ int main() {
 		P2 = Mat(P2_4);
 		R = Mat(R2_);
 		t = Mat(t2);
+                          found_solution=true;
 	}
+
+            if (!found_solution)
+            {
+                cerr<<"Unable to determine rotational matrix."<<endl;
+                return -1;
+            }
 
 	// Get the rectification parameters
 	if (debug)
